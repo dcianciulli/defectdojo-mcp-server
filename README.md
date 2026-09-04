@@ -4,9 +4,8 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that p
 [DefectDojo](https://www.defectdojo.com/) vulnerability management platform, plus a portable
 **Agent Skill** that teaches any coding agent how to use it correctly.
 
-> **Repos**: canonical `mcp/defectdojo-mcp-server` on repository — mirror
-> [`dcianciulli/defectdojo-mcp-server`](https://github.com/dcianciulli/defectdojo-mcp-server) on GitHub.
-> The server can be run straight from either remote (no clone needed).
+> **Repo**: [`dcianciulli/defectdojo-mcp-server`](https://github.com/dcianciulli/defectdojo-mcp-server).
+> The server can be run straight from this repository (no clone needed).
 
 ## What's in this repository
 

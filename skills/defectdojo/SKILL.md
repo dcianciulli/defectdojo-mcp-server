@@ -1,9 +1,11 @@
 ---
 name: defectdojo
-description: "Gestione DefectDojo (istanza DefectDojo, your-defectdojo.example.com) tramite i tool MCP del server defectdojo-mcp-server: ricerca asset/finding, chiusure (falso positivo, mitigazione, duplicato), accettazioni di rischio con scadenza, note, import scan. Usare quando la richiesta riguarda vulnerabilita', progetti/asset, engagement o risk acceptance su DefectDojo."
+description: "Gestione DefectDojo tramite i tool MCP del server defectdojo-mcp-server: ricerca asset/finding, chiusure (falso positivo, mitigazione, duplicato), accettazioni di rischio con scadenza, note, import scan. Usare quando la richiesta riguarda vulnerabilita', progetti/asset, engagement o risk acceptance su DefectDojo."
 ---
 
-# DefectDojo (MCP) — istanza DefectDojo (`your-defectdojo.example.com`)
+# DefectDojo (MCP)
+
+Configurare l'URL dell'istanza DefectDojo (es. `https://defectdojo.internal.example.com`) via env `DEFECTDOJO_URL` — vedi `skills/README.md`.
 
 ## Setup (una volta per ambiente)
 
@@ -64,7 +66,7 @@ Se un tool citato non è visibile nella sessione, cercare nella lista tool dell'
 
 Per l'utente questo significa: **SOLO le finding ACTIVE** (non mitigated, non duplicate), a meno che non dica esplicitamente "tutte".
 
-1. **Risolvi la persona** in un `user_id`: `list_users` (filtri `username`, `first_name`, `last_name`; match su username/email formato `nome.cognome@example.com`). Gli utenti di interesse sono SOLO interni con email @example.com (no esterni).
+1. **Risolvi la persona** in un `user_id`: `list_users` (filtri `username`, `first_name`, `last_name`; matcha su username o email). Se l'organizzazione usa uno schema email `nome.cognome@dominio`, adattare il match; se esistono utenti esterni, escluderli salvo richiesta esplicita.
 2. **Trova i prodotti in cui la persona è AUTORIZZATA**: in DefectDojo l'autorizzazione è tracciata come **Product_Member diretto** (campo `authorized_users` nel payload del product), NON via gruppi né a livello organization. Se un tool dedicato alla membership non è disponibile, usa `list_products` e filtra il campo `authorized_users` sui risultati.
 3. **Per ogni prodotto autorizzato**: `list_engagements(product_id=…)` → `list_findings(engagement_id=…, active=true)`. Riduci il carico con limit/offset.
 4. **Attribuzione**: le finding di quei prodotti sono le vulnerabilità della persona perché è autorizzata sul prodotto. NON matchare per "reporter" o "mitigated_by".
