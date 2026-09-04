@@ -1,6 +1,6 @@
 ---
 name: defectdojo
-description: Gestione DefectDojo (istanza DefectDojo your-defectdojo.example.com) tramite i tool MCP del server defectdojo-mcp-server: ricerca asset/finding, chiusure (falso positivo, mitigazione, duplicato), accettazioni di rischio con scadenza, note, import scan. Da usare quando la richiesta riguarda vulnerabilità, progetti/asset, engagement o risk acceptance su DefectDojo.
+description: "Gestione DefectDojo (istanza DefectDojo, your-defectdojo.example.com) tramite i tool MCP del server defectdojo-mcp-server: ricerca asset/finding, chiusure (falso positivo, mitigazione, duplicato), accettazioni di rischio con scadenza, note, import scan. Usare quando la richiesta riguarda vulnerabilita', progetti/asset, engagement o risk acceptance su DefectDojo."
 ---
 
 # DefectDojo (MCP) — istanza DefectDojo (`your-defectdojo.example.com`)
