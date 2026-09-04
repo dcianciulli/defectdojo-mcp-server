@@ -7,11 +7,10 @@ description: "Gestione DefectDojo (istanza DefectDojo, your-defectdojo.example.c
 
 ## Setup (una volta per ambiente)
 
-Questo skill guida l'USO dei tool; il server MCP che li fornisce è `defectdojo-mcp-server`
-(repo: `mcp/defectdojo-mcp-server` su repository, mirror `dcianciulli/defectdojo-mcp-server` su GitHub).
-Se i tool MCP non sono disponibili nella sessione corrente, configura il server come da
-`skills/README.md` nel repo (snippet pronti per opencode / Codex / Claude Code / Cursor / Gemini CLI / Hermes).
-Serve `uv`/`uvx` installato e le env `DEFECTDOJO_URL` + `DEFECTDOJO_API_KEY` (token dal profilo DefectDojo → API v2 Key).
+Questa skill guida l'USO dei tool; gli strumenti sono forniti dal server MCP `defectdojo-mcp-server`
+(documentazione e installazione per ogni harness: `skills/README.md` nel repo del server).
+Se i tool MCP non sono disponibili nella sessione corrente, configurare il server come da
+guida (`uv`/`uvx` richiesto, env `DEFECTDOJO_URL` + `DEFECTDOJO_API_KEY` — token dal profilo DefectDojo → API v2 Key).
 
 ## Regole fondamentali
 

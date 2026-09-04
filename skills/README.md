@@ -1,63 +1,80 @@
-# Skill `defectdojo` — distribuzione multi-harness
+# Installazione e distribuzione — skill `defectdojo` + server MCP
 
-Skill agente portabile nel formato standard **Agent Skills** (`SKILL.md` + frontmatter),
-compatibile con Claude Code, OpenCode, Codex CLI, Cursor, Gemini CLI e Hermes.
-La skill guida l'uso del server MCP `defectdojo-mcp-server` (stesso repo, cartella `skills/`).
+Guida operativa per installare la skill e/o il server MCP `defectdojo-mcp-server` su qualsiasi
+agente di coding. Il repo è pensato per essere distribuito a tutti: nessun passaggio presuppone
+strumenti o installazioni particolari dell'autore.
 
-> La skill insegna al modello COME usare i tool; il server MCP fornisce i tool.
-> Servono entrambi: skill = procedura, server = esecuzione.
+> **Ruolo dei due componenti**
+> - **Skill** (`skills/defectdojo/SKILL.md`, formato standard Agent Skills): la *procedura* —
+>   come cercare asset, chiudere vulnerabilità, gestire le risk acceptance. È solo testo, portabile.
+> - **Server MCP**: gli *strumenti* che la skill usa. È un processo eseguibile sul PC di chi lo usa.
+>
+> Sono indipendenti: si installano insieme o separatamente. Una skill da sola NON configura
+> server MCP (resta configurazione esplicita dell'host), fatta eccezione per il plugin Claude Code.
 
-## Installazione — metodo consigliato (verificato)
+---
 
-Con Node.js installato, un solo comando installa la skill in Claude Code, OpenCode, Codex, Cursor e altri (rileva gli agenti presenti):
+## 1. Prerequisiti (per tutti)
+
+| Prerequisito | A cosa serve | Come verificarlo |
+|---|---|---|
+| `uv` / `uvx` | avvia il server MCP direttamente da git | `uvx --version` |
+| Node.js + npx | solo per l'installatore `npx skills` | `npx --version` |
+| `DEFECTDOJO_URL` | env var, es. `https://your-defectdojo.example.com` | nel profilo utente o nella config MCP |
+| `DEFECTDOJO_API_KEY` | token personale (DefectDojo → profilo → API v2 Key) | idem |
+
+Il token è **personale**: ogni azione (chiusure, note, accettazioni) risulta attribuita a chi
+lo usa. Non condividere token tra colleghi.
+
+---
+
+## 2. Installazione della skill
+
+### Metodo consigliato — `npx skills` (rileva gli agenti installati)
 
 ```bash
 npx skills add https://github.com/dcianciulli/defectdojo-mcp-server -g
-# oppure dal repository:
+# oppure dal repository (fonte canonica):
 npx skills add https://github.com/dcianciulli/defectdojo-mcp-server.git -g
 ```
 
-**Solo Claude Code** — plugin completo (skill + server MCP configurato, si connette da solo):
+Installa in Claude Code, OpenCode, Codex CLI, Cursor e altre harness compatibili in un colpo
+solo (usa `-a claude-code -a opencode` per scegliere destinazioni precise). Aggiornamenti:
+`npx skills check` / `npx skills update`.
+
+### Manuale (senza Node.js)
+
+Il contenuto della skill è identico per tutte le harness; cambia solo la cartella di destinazione.
+
+| Harness | Percorso globale |
+|---|---|
+| Claude Code | `~/.claude/skills/defectdojo/` |
+| OpenCode | `~/.config/opencode/skills/defectdojo/` |
+| Codex CLI | `~/.codex/skills/defectdojo/` |
+| Percorso agent-neutral | `~/.agents/skills/defectdojo/` (letto anche da OpenCode, Codex, Cursor e altri) |
+
+```bash
+git clone https://github.com/dcianciulli/defectdojo-mcp-server.git
+cp -r defectdojo-mcp-server/skills/defectdojo ~/.agents/skills/   # esempio percorso agent-neutral
+```
+
+### Solo Claude Code — plugin (skill + MCP in un colpo)
 
 ```bash
 claude plugin marketplace add dcianciulli/defectdojo-mcp-server
 claude plugin install defectdojo@defectdojo-mcp
-# prerequisito: uv installato + env DEFECTDOJO_URL e DEFECTDOJO_API_KEY nel profilo
 ```
 
-## Installazione manuale (senza npx)
+Il plugin configura anche il server MCP (punto 3) automaticamente: resta da impostare le due
+env var (prerequisiti sopra) e riavviare Claude Code.
 
-Il percorso cambia per harness, il file no. Copia `skills/defectdojo/` nella destinazione:
+---
 
-| Harness | Percorso (globale) | Percorso (progetto) |
-|---|---|---|
-| Claude Code | `~/.claude/skills/defectdojo/` | `.claude/skills/defectdojo/` |
-| OpenCode | `~/.config/opencode/skills/defectdojo/` | `.opencode/skills/defectdojo/` |
-| Codex CLI | `~/.codex/skills/defectdojo/` (`$CODEX_HOME/skills/`) | `~/.agents/skills/defectdojo/` |
-| Cursor | `~/.agents/skills/defectdojo/` | `.agents/skills/defectdojo/` |
-| Gemini CLI | `~/.gemini/skills/defectdojo/` | `.gemini/skills/defectdojo/` |
-| Hermes | gestita dalla skill interna `defectdojo` (già installata) | — |
+## 3. Configurazione del server MCP per harness
 
-Installazione rapida (una riga, dalla root di questo repo):
-
-```bash
-# Claude Code
-mkdir -p ~/.claude/skills && cp -r skills/defectdojo ~/.claude/skills/
-# OpenCode
-mkdir -p ~/.config/opencode/skills && cp -r skills/defectdojo ~/.config/opencode/skills/
-# Codex CLI
-mkdir -p ~/.codex/skills && cp -r skills/defectdojo ~/.codex/skills/
-# Percorso agent-neutral (Cursor e altri; è anche quello che OpenCode e Codex sanno leggere)
-mkdir -p ~/.agents/skills && cp -r skills/defectdojo ~/.agents/skills/
-```
-
-Su Windows (Git Bash) i percorsi sono gli stessi con `$HOME` (es. `$HOME/.claude/skills`).
-In alternativa al copia: `npx skills add <repo-url>` (il CLI `skills` installa nelle directory standard).
-
-## Configurazione del server MCP per harness
-
-Prerequisiti per tutti: `uv`/`uvx` installato, e le due variabili d'ambiente
-`DEFECTDOJO_URL` (es. `https://your-defectdojo.example.com`) e `DEFECTDOJO_API_KEY` (token dal profilo DefectDojo → API v2 Key).
+Snippet esatti, verificati sulla documentazione di ciascuna harness. La parte variabile è solo
+il file di destinazione; il comando del server è sempre lo stesso (stdio, avvio da git, nessun
+clone richiesto).
 
 ### OpenCode — `opencode.json` (progetto) o `~/.config/opencode/opencode.json` (globale)
 
@@ -103,6 +120,8 @@ env = { DEFECTDOJO_URL = "https://your-defectdojo.example.com", DEFECTDOJO_API_K
 }
 ```
 
+(Con il plugin del punto 2 questa config non serve: è inclusa.)
+
 ### Cursor — `~/.cursor/mcp.json` (stesso formato Claude)
 
 ```json
@@ -131,32 +150,36 @@ env = { DEFECTDOJO_URL = "https://your-defectdojo.example.com", DEFECTDOJO_API_K
 }
 ```
 
-### Hermes — `~/AppData/Local/hermes/config.yaml`
+### Kiro / Claude Desktop — `mcp.json`
 
-```yaml
-mcpServers:
-  defectdojo:
-    command: uvx
-    args:
-      - --from
-      - git+https://github.com/dcianciulli/defectdojo-mcp-server
-      - defectdojo-mcp-server
-    env:
-      DEFECTDOJO_URL: https://your-defectdojo.example.com
-      DEFECTDOJO_API_KEY: ${env:DEFECTDOJO_API_KEY}
-```
+Stesso formato JSON di Cursor/Gemini (vedi sopra); su Kiro il file è `~/.kiro/settings/mcp.json`.
 
-Nota Windows: in assenza di `uvx`, usare il path assoluto a `uv.exe` (es. `C:\Users\<utente>\.local\bin\uvx.exe`).
+### Altre harness agent-neutral
 
-## Manutenzione
+La skill standard (`SKILL.md`) viene letta da qualsiasi agente compatibile con il formato
+Agent Skills anche da percorsi non elencati (es. `.agents/skills/` nel progetto). Per il server
+MCP vale sempre la stessa coppia `command` + `env`: adattala al formato di config dell'host.
 
-- La fonte canonica della skill è `skills/defectdojo/SKILL.md` in questo repo: modificarla qui e ricopiare nelle harness.
-- La skill interna Hermes (`defectdojo`) resta per l'uso locale; questa copia è la versione distribuibile (aggiornata al server v3 con chiusure e risk acceptance).
-- Rilasci del server: la skill è indipendente dal codice; i tool citati esistono già nell'istanza.
-- Il token API è personale: chi lo usa agisce in DefectDojo come quel utente (attribuzione corretta di note e chiusure).
+**Nota Windows**: senza `uvx` nel PATH, indicare il percorso assoluto a `uvx.exe`
+(es. `C:\Users\<utente>\.local\bin\uvx.exe`).
 
-## Verifica post-installazione
+---
+
+## 4. Verifica post-installazione
 
 1. Riavvia l'harness (o riconnetti i server MCP).
-2. Verifica che il server risponda: chiedi all'agente "chi sono in DefectDojo?" (tool `get_current_user`).
-3. Smoke test in sola lettura: "elenca le finding attive di un asset a scelta, limit 5".
+2. Chiedi all'agente: *"chi sono in DefectDojo?"* → deve rispondere con `get_current_user`.
+3. Smoke test in sola lettura: *"elenca le finding attive di un asset a scelta, limit 5"*.
+4. Se l'agente non usa la skill: verifica che la cartella sia quella giusta per la tua harness
+   (tabella al punto 2) e che il frontmatter `name: defectdojo` corrisponda al nome della cartella.
+
+## 5. Manutenzione
+
+- **Fonte canonica della skill**: `skills/defectdojo/SKILL.md` in questo repo. Le modifiche
+  vanno fatte qui, poi ricopiate/aggiornate nelle destinazioni (`npx skills update` per i
+  download via `npx skills`).
+- Skill e server evolvono insieme: quando si aggiunge/rimuove un tool, aggiornare
+  `SKILL.md`, la tabella tool di questo repo (`README.md`) ed eventualmente i manifest
+  `.claude-plugin/` (bump versione).
+- Il server si scarica da git a ogni avvio (uvx): dopo ogni push è sufficiente riavviare la
+  connessione MCP dell'harness per usare il codice aggiornato.
