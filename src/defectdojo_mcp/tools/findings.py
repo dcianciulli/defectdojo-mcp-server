@@ -19,13 +19,22 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
         verified: bool | None = None,
         is_mitigated: bool | None = None,
         duplicate: bool | None = None,
+        false_positive: bool | None = None,
+        out_of_scope: bool | None = None,
+        risk_accepted: bool | None = None,
         test_id: int | None = None,
         engagement_id: int | None = None,
         product_id: int | None = None,
         product_name: str | None = None,
         title: str | None = None,
+        title_exact: str | None = None,
         cwe: int | None = None,
+        vulnerability_id: str | None = None,
+        reporter_id: int | None = None,
+        mitigated_by_id: int | None = None,
+        outside_of_sla: bool | None = None,
         tag: str | None = None,
+        ordering: str | None = None,
         limit: int = 25,
         offset: int = 0,
     ) -> dict[str, Any]:
@@ -37,13 +46,22 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
             verified: Filter verified findings only
             is_mitigated: Filter mitigated findings
             duplicate: Filter duplicates
+            false_positive: Filter false positives (false_p)
+            out_of_scope: Filter out-of-scope findings
+            risk_accepted: Filter findings under an active risk acceptance
             test_id: Filter by test ID
             engagement_id: Filter by engagement ID (via test__engagement)
-            product_id: Filter by product ID (via test__engagement__product)
-            product_name: Filter by product name
-            title: Filter by title (contains)
+            product_id: Filter by product (asset) ID (via test__engagement__product)
+            product_name: Filter by product (asset) name (server-side contains)
+            title: Filter by title (server-side contains)
+            title_exact: Filter by exact title
             cwe: Filter by CWE number
+            vulnerability_id: Filter by CVE/vulnerability ID (e.g. CVE-2024-1234)
+            reporter_id: Filter by reporter user ID
+            mitigated_by_id: Filter by the user who mitigated
+            outside_of_sla: Filter findings outside SLA
             tag: Filter by tag name (contains)
+            ordering: Ordering fields (e.g. "-severity", "created", "-date")
             limit: Number of results per page (default 25)
             offset: Pagination offset
         """
@@ -53,13 +71,22 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
             "verified": verified,
             "is_mitigated": is_mitigated,
             "duplicate": duplicate,
+            "false_p": false_positive,
+            "out_of_scope": out_of_scope,
+            "risk_accepted": risk_accepted,
             "test": test_id,
             "test__engagement": engagement_id,
             "test__engagement__product": product_id,
-            "test__engagement__product__name": product_name,
+            "product_name": product_name,
             "title": title,
+            "exact_title": title_exact,
             "cwe": cwe,
+            "vulnerability_id": vulnerability_id,
+            "reporter": reporter_id,
+            "mitigated_by": mitigated_by_id,
+            "outside_of_sla": outside_of_sla,
             "tag": tag,
+            "o": ordering,
         }
         return await client.get_list("/findings/", params, limit=limit, offset=offset)
 
@@ -184,15 +211,6 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
         return await client.patch(f"/findings/{finding_id}/", data)
 
     @mcp.tool()
-    async def close_finding(finding_id: int) -> dict[str, Any]:
-        """Close a finding (marks it as inactive/mitigated).
-
-        Args:
-            finding_id: The finding ID to close
-        """
-        return await client.post(f"/findings/{finding_id}/close/", {})
-
-    @mcp.tool()
     async def verify_finding(finding_id: int) -> dict[str, Any]:
         """Mark a finding as verified.
 
@@ -221,12 +239,15 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
 
     @mcp.tool()
     async def list_finding_notes(finding_id: int) -> dict[str, Any]:
-        """List notes for a finding.
+        """List notes for a finding (ordered newest first).
 
         Args:
             finding_id: The finding ID
         """
-        return await client.get(f"/findings/{finding_id}/notes/")
+        resp = await client.get(f"/findings/{finding_id}/notes/")
+        # v3 returns {"finding_id": N, "notes": [...]} (not paginated)
+        notes = resp.get("notes", []) if isinstance(resp, dict) else []
+        return {"finding_id": finding_id, "count": len(notes), "notes": notes}
 
     @mcp.tool()
     async def add_finding_note(
@@ -240,13 +261,27 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
         Args:
             finding_id: The finding ID
             entry: Note text content
-            private: Whether the note is private
-            note_type: Note type ID (optional)
+            private: Whether the note is private (visible only to you and superusers)
+            note_type: Note type ID (see list_note_types)
         """
         data: dict[str, Any] = {"entry": entry, "private": private}
         if note_type is not None:
             data["note_type"] = note_type
-        return await client.post(f"/findings/{finding_id}/notes/", data)
+        await client.post(f"/findings/{finding_id}/notes/", data)
+        return {"finding_id": finding_id, "added": True, "entry": entry, "private": private}
+
+    @mcp.tool()
+    async def remove_finding_note(finding_id: int, note_id: int) -> dict[str, Any]:
+        """Remove a note from a finding.
+
+        Args:
+            finding_id: The finding ID
+            note_id: The note ID to remove (see list_finding_notes)
+        """
+        await client.patch(
+            f"/findings/{finding_id}/remove_note/", {"note_id": note_id}
+        )
+        return {"finding_id": finding_id, "note_id": note_id, "removed": True}
 
     @mcp.tool()
     async def list_finding_metadata(finding_id: int) -> dict[str, Any]:
@@ -273,29 +308,6 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
         )
 
     @mcp.tool()
-    async def accept_risks(
-        findings: list[int],
-        accepted_by: str | None = None,
-        justification: str | None = None,
-    ) -> dict[str, Any]:
-        """Accept risk for one or more findings.
-
-        Args:
-            findings: List of finding IDs to accept risk for
-            accepted_by: Name of person accepting risk
-            justification: Justification for accepting risk
-        """
-        data: list[dict[str, Any]] = []
-        for fid in findings:
-            entry: dict[str, Any] = {"id": fid}
-            if accepted_by:
-                entry["accepted_by"] = accepted_by
-            if justification:
-                entry["justification"] = justification
-            data.append(entry)
-        return await client.post("/findings/accept_risks/", data)
-
-    @mcp.tool()
     async def delete_finding(finding_id: int) -> dict[str, Any]:
         """Delete a finding.
 
@@ -303,3 +315,19 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
             finding_id: The finding ID to delete
         """
         return await client.delete(f"/findings/{finding_id}/")
+
+    @mcp.tool()
+    async def list_note_types(
+        name: str | None = None,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """List available note types (usable in add_finding_note / close_finding).
+
+        Args:
+            name: Filter by name (contains)
+            limit: Results per page (default 25)
+            offset: Pagination offset
+        """
+        params: dict[str, Any] = {"name": name}
+        return await client.get_list("/note_type/", params, limit=limit, offset=offset)

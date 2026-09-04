@@ -74,24 +74,27 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
     @mcp.tool()
     async def list_risk_acceptances(
         finding_id: int | None = None,
-        product_id: int | None = None,
         owner_id: int | None = None,
+        name_contains: str | None = None,
+        accepted_by: str | None = None,
         limit: int = 25,
         offset: int = 0,
     ) -> dict[str, Any]:
         """List risk acceptances.
 
         Args:
-            finding_id: Filter by finding ID
-            product_id: Filter by product ID
+            finding_id: Filter by an accepted finding ID
             owner_id: Filter by owner user ID
+            name_contains: Filter by name (contains)
+            accepted_by: Filter by acceptor name/email (contains)
             limit: Results per page
             offset: Pagination offset
         """
         params: dict[str, Any] = {
             "accepted_findings": finding_id,
-            "product": product_id,
             "owner": owner_id,
+            "name__icontains": name_contains,
+            "accepted_by__icontains": accepted_by,
         }
         return await client.get_list(
             "/risk_acceptance/", params, limit=limit, offset=offset
@@ -116,18 +119,24 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
         decision: str | None = None,
         decision_details: str | None = None,
         expiration_date: str | None = None,
+        accepted_by: str | None = None,
+        reactivate_expired: bool = True,
+        restart_sla_expired: bool = False,
     ) -> dict[str, Any]:
-        """Create a new risk acceptance.
+        """Create a new risk acceptance (low-level: prefer accept_risk, which enforces expiration).
 
         Args:
             name: Risk acceptance name
             owner_id: Owner user ID
             accepted_findings: List of finding IDs to accept
-            recommendation: Recommendation (fix, accept, transfer)
+            recommendation: Security recommendation code (A, V, M, F, T)
             recommendation_details: Details about the recommendation
-            decision: Decision (accept, avoid, mitigate, fix, transfer)
-            decision_details: Details about the decision
-            expiration_date: Expiration date (YYYY-MM-DD)
+            decision: Risk treatment decision code (A, V, M, F, T)
+            decision_details: Details about the decision / compensating controls
+            expiration_date: Expiration date (YYYY-MM-DD or ISO datetime; mandatory in accept_risk)
+            accepted_by: Name/email of the person accepting the risk
+            reactivate_expired: Reactivate findings when the acceptance expires (default True)
+            restart_sla_expired: Restart SLA when the acceptance expires (default False)
         """
         data: dict[str, Any] = {
             "name": name,
@@ -138,9 +147,47 @@ def register(mcp: FastMCP, client: DefectDojoClient) -> None:
             "decision": decision,
             "decision_details": decision_details,
             "expiration_date": expiration_date,
+            "accepted_by": accepted_by,
+            "reactivate_expired": reactivate_expired,
+            "restart_sla_expired": restart_sla_expired,
         }
         data = {k: v for k, v in data.items() if v is not None}
         return await client.post("/risk_acceptance/", data)
+
+    @mcp.tool()
+    async def update_risk_acceptance(
+        risk_acceptance_id: int,
+        expiration_date: str | None = None,
+        decision: str | None = None,
+        decision_details: str | None = None,
+        recommendation: str | None = None,
+        recommendation_details: str | None = None,
+        reactivate_expired: bool | None = None,
+        restart_sla_expired: bool | None = None,
+    ) -> dict[str, Any]:
+        """Update a risk acceptance (partial update, e.g. extend expiration).
+
+        Args:
+            risk_acceptance_id: The risk acceptance ID
+            expiration_date: New expiration date (YYYY-MM-DD or ISO datetime)
+            decision: Risk treatment decision code (A, V, M, F, T)
+            decision_details: Details about the decision
+            recommendation: Security recommendation code (A, V, M, F, T)
+            recommendation_details: Details about the recommendation
+            reactivate_expired: Reactivate findings on expiration
+            restart_sla_expired: Restart SLA on expiration
+        """
+        data: dict[str, Any] = {
+            "expiration_date": expiration_date,
+            "decision": decision,
+            "decision_details": decision_details,
+            "recommendation": recommendation,
+            "recommendation_details": recommendation_details,
+            "reactivate_expired": reactivate_expired,
+            "restart_sla_expired": restart_sla_expired,
+        }
+        data = {k: v for k, v in data.items() if v is not None}
+        return await client.patch(f"/risk_acceptance/{risk_acceptance_id}/", data)
 
     @mcp.tool()
     async def delete_risk_acceptance(risk_acceptance_id: int) -> dict[str, Any]:

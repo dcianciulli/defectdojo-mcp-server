@@ -124,9 +124,11 @@ class DefectDojoClient:
         path: str,
         json_data: dict[str, Any],
     ) -> dict[str, Any]:
-        """PATCH request (partial update)."""
+        """PATCH request (partial update). Tolerates empty response bodies."""
         resp = await self.client.patch(path, json=json_data)
         resp.raise_for_status()
+        if resp.status_code == 204 or not resp.content.strip():
+            return {"status": "success"}
         return resp.json()
 
     async def delete(self, path: str) -> dict[str, Any]:

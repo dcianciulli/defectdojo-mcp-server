@@ -18,6 +18,7 @@ from defectdojo_mcp.tools import (
     endpoints,
     engagements,
     findings,
+    finding_lifecycle,
     imports,
     jira,
     organizations,
@@ -33,13 +34,19 @@ def create_server() -> FastMCP:
 
     mcp = FastMCP(
         "DefectDojo",
-        instructions="MCP server for DefectDojo vulnerability management platform. "
+        instructions="MCP server for DefectDojo vulnerability management platform (v3 API: assets/organizations). "
         "Provides tools for managing findings, products, engagements, tests, "
-        "scan imports, JIRA integration, and system administration.",
+        "scan imports, JIRA integration, and system administration. "
+        "Finding lifecycle: close_finding_false_positive / close_finding_mitigated / close_finding_duplicate / "
+        "reopen_finding; risk acceptance via accept_risk (expiration date MANDATORY) plus expire/reinstate. "
+        "When asked to work on a project, ALWAYS resolve it by ASSET name first "
+        "(list_products with name filter), then confirm with the user if ambiguous; "
+        "use the organization only as a secondary hint.",
     )
 
     # Register all tool modules
     findings.register(mcp, client)
+    finding_lifecycle.register(mcp, client)
     assets.register(mcp, client)
     engagements.register(mcp, client)
     tests.register(mcp, client)
