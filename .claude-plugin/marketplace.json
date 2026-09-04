@@ -1,0 +1,16 @@
+{
+  "name": "defectdojo-mcp",
+  "owner": {
+    "name": "Danilo Cianciulli",
+    "url": "https://github.com/dcianciulli/defectdojo-mcp-server"
+  },
+  "plugins": [
+    {
+      "name": "defectdojo",
+      "source": "./",
+      "description": "DefectDojo MCP server + skill: gestione vulnerabilita', chiusure e risk acceptance su your-defectdojo.example.com",
+      "version": "1.0.0"
+    }
+  ],
+  "description": "Plugin Claude Code: server MCP DefectDojo (your-defectdojo.example.com) con skill d'uso - chiusure, risk acceptance, asset."
+}

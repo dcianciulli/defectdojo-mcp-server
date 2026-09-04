@@ -1,0 +1,16 @@
+{
+  "name": "defectdojo",
+  "description": "DefectDojo MCP server + skill: gestione vulnerabilita', chiusure e risk acceptance su your-defectdojo.example.com",
+  "version": "1.0.0",
+  "mcpServers": {
+    "defectdojo": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/dcianciulli/defectdojo-mcp-server", "defectdojo-mcp-server"],
+      "env": {
+        "DEFECTDOJO_URL": "${DEFECTDOJO_URL}",
+        "DEFECTDOJO_API_KEY": "${DEFECTDOJO_API_KEY}"
+      }
+    }
+  }
+}
