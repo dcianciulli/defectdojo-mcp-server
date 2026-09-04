@@ -8,9 +8,9 @@
     {
       "name": "defectdojo",
       "source": "./",
-      "description": "Server MCP DefectDojo (your-defectdojo.example.com) + skill d'uso: chiusure, risk acceptance, asset.",
+      "description": "DefectDojo MCP server (78 tools) + usage skill: closures, risk acceptance, assets",
       "version": "1.0.0"
     }
   ],
-  "description": "Plugin Claude Code: server MCP DefectDojo (your-defectdojo.example.com) con skill d'uso - chiusure, risk acceptance, asset."
+  "description": "Claude Code plugin: DefectDojo MCP server with a bundled usage skill"
 }

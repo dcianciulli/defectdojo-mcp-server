@@ -67,7 +67,7 @@ Se un tool citato non è visibile nella sessione, cercare nella lista tool dell'
 Per l'utente questo significa: **SOLO le finding ACTIVE** (non mitigated, non duplicate), a meno che non dica esplicitamente "tutte".
 
 1. **Risolvi la persona** in un `user_id`: `list_users` (filtri `username`, `first_name`, `last_name`; matcha su username o email). Se l'organizzazione usa uno schema email `nome.cognome@dominio`, adattare il match; se esistono utenti esterni, escluderli salvo richiesta esplicita.
-2. **Trova i prodotti in cui la persona è AUTORIZZATA**: in DefectDojo l'autorizzazione è tracciata come **Product_Member diretto** (campo `authorized_users` nel payload del product), NON via gruppi né a livello organization. Se un tool dedicato alla membership non è disponibile, usa `list_products` e filtra il campo `authorized_users` sui risultati.
+2. **Trova i prodotti in cui la persona è AUTORIZZATA**: usa il campo `authorized_users` esposto nel payload del product (filtra i risultati di `list_products`); se l'istanza traccia l'autorizzazione anche via gruppi (Authorization/Team memberships), considerali secondo la prassi della tua organizzazione.
 3. **Per ogni prodotto autorizzato**: `list_engagements(product_id=…)` → `list_findings(engagement_id=…, active=true)`. Riduci il carico con limit/offset.
 4. **Attribuzione**: le finding di quei prodotti sono le vulnerabilità della persona perché è autorizzata sul prodotto. NON matchare per "reporter" o "mitigated_by".
 5. **Riassumi**: per prodotto → numero finding attive + breakdown per severity (Critical/High/Medium/Low/Info), con elenco dei titoli per Critical e High; includi gli ID finding per riferimenti futuri.

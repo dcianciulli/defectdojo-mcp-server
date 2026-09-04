@@ -34,8 +34,6 @@ lo usa. Non condividere token tra colleghi.
 
 ```bash
 npx skills add https://github.com/dcianciulli/defectdojo-mcp-server -g
-# oppure dal repository (fonte canonica):
-npx skills add https://github.com/dcianciulli/defectdojo-mcp-server.git -g
 ```
 
 Installa in Claude Code, OpenCode, Codex CLI, Cursor e altre harness compatibili in un colpo

@@ -15,7 +15,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that p
 | `skills/defectdojo/SKILL.md` | Portable Agent Skill (standard `SKILL.md` format) — works with Claude Code, OpenCode, Codex CLI, Cursor, Gemini CLI and any other skill-compatible harness |
 | `skills/README.md` | **Install & distribution guide**: per-harness install paths and MCP config snippets |
 | `.claude-plugin/` | Claude Code plugin + marketplace manifests (bundles skill + MCP server in one install) |
-| `tests/` | Live integration tests against the real instance |
+| `tests/` | Live integration tests (adapt to your instance: point `DEFECTDOJO_URL` at a test instance) |
 
 **Skill = knowledge** (procedures, workflows, tool map — plain markdown, portable everywhere).
 **MCP server = execution** (the actual tools). They are independent: install either or both.
@@ -32,8 +32,6 @@ DefectDojo → your profile → API v2 Key).
 
 ```bash
 npx skills add https://github.com/dcianciulli/defectdojo-mcp-server -g
-# or from the repository:
-npx skills add https://github.com/dcianciulli/defectdojo-mcp-server.git -g
 ```
 
 **Run the MCP server** (most harnesses — Kiro, Claude Desktop, Cursor, Gemini CLI share this JSON shape):
@@ -60,8 +58,8 @@ claude plugin marketplace add dcianciulli/defectdojo-mcp-server
 claude plugin install defectdojo@defectdojo-mcp
 ```
 
-The plugin's MCP entry points at the repository; it resolves `uvx` and requires the two
-env variables above to be set in your environment.
+The plugin bundles the MCP server definition (runs via `uvx` straight from this repo); you still
+need the two environment variables above set in your environment.
 
 ## Features
 
@@ -171,10 +169,10 @@ uv sync                 # creates .venv from pyproject.toml + uv.lock
 uv run defectdojo-mcp-server          # start server locally (stdio)
 ```
 
-- The `mcp` dependency is pinned to `1.x` (FastMCP API); `uv.lock` is committed to keep it that way.
+- Requires Python >= 3.10. The `mcp` dependency is pinned to `1.x` (FastMCP API); `uv.lock` is committed to keep it that way.
 - `tests/test_lifecycle_live.py` exercises the full lifecycle (close FP/mitigated, reopen, risk
-  acceptance with expiration, expire) against the real instance using the *test asset* — run it
-  only with a test finding ID you own.
+  acceptance with expiration, expire) against a live DefectDojo instance — adapt the finding ID
+  and run it only against a test finding you own (never production data).
 - After changing the code, restart the MCP connection in your harness to pick up the new tools.
 
 ## License

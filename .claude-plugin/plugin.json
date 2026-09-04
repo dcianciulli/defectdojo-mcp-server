@@ -1,6 +1,6 @@
 {
   "name": "defectdojo",
-  "description": "DefectDojo MCP server + skill: gestione vulnerabilita', chiusure e risk acceptance su your-defectdojo.example.com",
+  "description": "DefectDojo MCP server + usage skill: findings lifecycle (false positive / mitigated / duplicate closures), risk acceptance with mandatory expiration, assets",
   "version": "1.0.0",
   "mcpServers": {
     "defectdojo": {
