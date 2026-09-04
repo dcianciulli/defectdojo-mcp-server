@@ -7,7 +7,25 @@ La skill guida l'uso del server MCP `defectdojo-mcp-server` (stesso repo, cartel
 > La skill insegna al modello COME usare i tool; il server MCP fornisce i tool.
 > Servono entrambi: skill = procedura, server = esecuzione.
 
-## Installazione
+## Installazione — metodo consigliato (verificato)
+
+Con Node.js installato, un solo comando installa la skill in Claude Code, OpenCode, Codex, Cursor e altri (rileva gli agenti presenti):
+
+```bash
+npx skills add https://github.com/dcianciulli/defectdojo-mcp-server -g
+# oppure dal repository:
+npx skills add https://github.com/dcianciulli/defectdojo-mcp-server.git -g
+```
+
+**Solo Claude Code** — plugin completo (skill + server MCP configurato, si connette da solo):
+
+```bash
+claude plugin marketplace add dcianciulli/defectdojo-mcp-server
+claude plugin install defectdojo@defectdojo-mcp
+# prerequisito: uv installato + env DEFECTDOJO_URL e DEFECTDOJO_API_KEY nel profilo
+```
+
+## Installazione manuale (senza npx)
 
 Il percorso cambia per harness, il file no. Copia `skills/defectdojo/` nella destinazione:
 
